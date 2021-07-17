@@ -3,6 +3,7 @@
 int main(void)
 {
     GLFWwindow* window;
+    double myNum;
 
     /* Initialize the library */
     if (!glfwInit())
