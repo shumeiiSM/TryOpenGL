@@ -3,6 +3,50 @@
 
 #include <iostream>
 
+static unsigned int CompileShader(unsigned int type, const std::string& source)
+{
+    unsigned int id = glCreateShader(type);
+    const char* src = source.c_str(); // a pointer to beginning of the data - return pointer to immutable array so cannot be changed
+    // OR = &source[0]; - looking out first char in the string return a memory address
+    glShaderSource(id, 1, &src, nullptr);
+    glCompileShader(id);
+
+    // TODO: Error handling
+    int result;
+    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+    if (result == GL_FALSE) // (!result)
+    {
+        int length;
+        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+        char* message = (char*)alloca(length * sizeof(char)); // a function allocate size bytes of space on the stack dynamically
+        glGetShaderInfoLog(id, length, &length, message);
+        std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!" << std::endl;
+        std::cout << message << std::endl;
+        glDeleteShader(id);
+        return 0;
+    }
+
+    return id;
+}
+
+static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
+{
+    unsigned int program = glCreateProgram();
+    unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
+    unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
+
+    glAttachShader(program, vs);
+    glAttachShader(program, fs);
+    glLinkProgram(program); // links the program object specified by program
+    glValidateProgram(program); // checks to see whether the executables contained in program can execute given the current OpenGL state.
+
+    // can delete those shader since linked to the program alr & its immediate
+    glDeleteShader(vs); 
+    glDeleteShader(fs);
+
+    return program;
+}
+
 int main(void)
 {
     GLFWwindow* window;
@@ -22,7 +66,7 @@ int main(void)
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
-    /* First you need to create a valid OpenGL rendering context - line 23 */
+    /* First you need to create a valid OpenGL rendering context - glfwMakeContextCurrent(window) */
     /* before calling glewInit to initialize the extension entry points */
     if (glewInit() != GLEW_OK) {
         std::cout << "Error!" << std::endl;
@@ -40,6 +84,7 @@ int main(void)
         // OpenGL doesn't know how many float per vertices so need to specific your layout using glVertexAttribPointer
     };
 
+    /* Vertex Buffer */
     unsigned int buffer;
     glGenBuffers(1, &buffer); // generate a buffer and giving back an ID
     glBindBuffer(GL_ARRAY_BUFFER, buffer); // select which buffer you want to use
@@ -52,6 +97,31 @@ int main(void)
                                                         // ^ or 8
 
     //glBindBuffer(GL_ARRAY_BUFFER, 0); // if bind (select) something else then glDrawArrays cannot draw 
+
+    std::string vertexShader = 
+        "#version 330 core\n"
+        "\n"
+        "layout(location = 0) in vec4 position;"
+        "\n"
+        "void main()\n"
+        "{\n"
+        "   gl_Position = position;\n"
+        "}\n";
+
+    std::string fragmentShader =
+        "#version 330 core\n"
+        "\n"
+        "layout(location = 0) out vec4 color;"
+        "\n"
+        "void main()\n"
+        "{\n"
+        "   color = vec4(1.0, 0.0, 0.0, 1.0);\n" // RGBA:  0 - black (0), 1 - white (255)
+        "}\n";
+
+    unsigned int shader = CreateShader(vertexShader, fragmentShader);
+    glUseProgram(shader); // installs the program object specified by program as part of current rendering state. 
+    // now the triangle is RED colour
+
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -82,6 +152,9 @@ int main(void)
         /* Poll for and process events */
         glfwPollEvents();
     }
+
+    /* Clean up the shaders once done */
+    glDeleteProgram(shader);
 
     glfwTerminate();
     return 0;
