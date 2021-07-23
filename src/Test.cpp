@@ -6,6 +6,7 @@
 #include <string>
 #include <sstream>
 
+/* Return 2 Variables */
 struct ShaderProgramSource
 {
     std::string VertexSource;
@@ -124,25 +125,59 @@ int main(void)
     // 4.6.0 - Build 27.20.100.9415
     std::cout << glGetString(GL_VERSION) << std::endl;
 
-    float positions[6] = {
+    /* Triangle */
+    //float positions[6] = {
+    //    // x, y
+    //   -0.5f, -0.5f,
+    //    0.0f, 0.5f,
+    //    0.5f, -0.5f
+    //    // OpenGL doesn't know how many float per vertices so need to specific your layout using glVertexAttribPointer
+    //};
+
+    /* Square */
+    float positions[] = {
         // x, y
-       -0.5f, -0.5f,
-        0.0f, 0.5f,
-        0.5f, -0.5f
-        // OpenGL doesn't know how many float per vertices so need to specific your layout using glVertexAttribPointer
+       -0.5f, -0.5f, // 0
+        0.5f, -0.5f, // 1
+        0.5f,  0.5f, // 2
+       -0.5f,  0.5f  // 3
+
+       /* remove duplicates */
+       //-0.5f, -0.5f, 
+       // 0.5f, -0.5f,
+       // 0.5f,  0.5f,
+       // 
+       // 0.5f,  0.5f,
+       //-0.5f,  0.5f,
+       //-0.5f, -0.5f
     };
+
+    unsigned int indices[] = {
+        0, 1, 2,
+        2, 3, 0
+    };
+
 
     /* Vertex Buffer */
     unsigned int buffer;
     glGenBuffers(1, &buffer); // generate a buffer and giving back an ID
     glBindBuffer(GL_ARRAY_BUFFER, buffer); // select which buffer you want to use
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW); // put data into that buffer
+    //glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW); // put data into that buffer
                                     // ^ in bytes (see docs.gl)
+
+    glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW); // SQUARE
 
     // Need to enable this vertex attribute if not will black screen - nothing will be render
     glEnableVertexAttribArray(0); // type this after your actual buffer is bound - glBindBuffer
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
                                                         // ^ or 8
+
+    /* Index Buffer */
+    unsigned int ibo; // index buffer object
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW); // MUST be unsigned
+
 
     //glBindBuffer(GL_ARRAY_BUFFER, 0); // if bind (select) something else then glDrawArrays cannot draw 
 
@@ -192,11 +227,15 @@ int main(void)
         //glVertex2f(0.5f, -0.5f);
         //glEnd();
 
-        glDrawArrays(GL_TRIANGLES, 0, 3); 
+        //glDrawArrays(GL_TRIANGLES, 0, 3); // TRIANGLE
+        //glDrawArrays(GL_TRIANGLES, 0, 6); // SQUARE
+
         // indices == vertices  
         //-0.5f, -0.5f,  - 1
         // 0.0f, 0.5f,   - 2
         // 0.5f, -0.5f   - 3
+
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr); // since we bound our ibo so just put nullptr
         
         /* Use with index buffers */
         //glDrawElements();
