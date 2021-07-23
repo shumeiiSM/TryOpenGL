@@ -126,6 +126,10 @@ int main(void)
     if (!glfwInit())
         return -1;
 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
     if (!window)
@@ -182,29 +186,34 @@ int main(void)
         2, 3, 0
     };
 
+    /* Explicitly creating a vao & how to use it */
+    unsigned int vao;
+    GLCall(glGenVertexArrays(1, &vao)); // stored in ID vao
+    GLCall(glBindVertexArray(vao)); // no actual target so just specify the ID we want to bind 
 
     /* Vertex Buffer */
     unsigned int buffer;
-    glGenBuffers(1, &buffer); // generate a buffer and giving back an ID
-    glBindBuffer(GL_ARRAY_BUFFER, buffer); // select which buffer you want to use
+    GLCall(glGenBuffers(1, &buffer)); // generate a buffer and giving back an ID
+    GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer)); // select which buffer you want to use
     //glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW); // put data into that buffer
                                     // ^ in bytes (see docs.gl)
 
-    glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW); // SQUARE
+    GLCall(glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW)); // SQUARE
 
     // Need to enable this vertex attribute if not will black screen - nothing will be render
-    glEnableVertexAttribArray(0); // type this after your actual buffer is bound - glBindBuffer
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+    GLCall(glEnableVertexAttribArray(0)); // type this after your actual buffer is bound - glBindBuffer
+    GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
                                                         // ^ or 8
 
     /* Index Buffer */
     unsigned int ibo; // index buffer object
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW); // MUST be unsigned
+    GLCall(glGenBuffers(1, &ibo));
+    GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+    GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW)); // MUST be unsigned
 
 
     //glBindBuffer(GL_ARRAY_BUFFER, 0); // if bind (select) something else then glDrawArrays cannot draw 
+
 
     //std::string vertexShader = 
     //    "#version 330 core\n"
@@ -235,12 +244,19 @@ int main(void)
 
     //unsigned int shader = CreateShader(vertexShader, fragmentShader);
     unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
-    glUseProgram(shader); // installs the program object specified by program as part of current rendering state. 
+    GLCall(glUseProgram(shader)); // installs the program object specified by program as part of current rendering state. 
     //// now the triangle is RED colour (or the color u indicate in the fragment shader)
 
     GLCall(int location = glGetUniformLocation(shader, "u_Color"));
     ASSERT(location != -1); // -1 means cannot find the location
     //GLCall(glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f)); // PINK
+
+    /* Unbound all the buffers */
+    GLCall(glBindVertexArray(0));
+    GLCall(glUseProgram(0));
+    GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+    GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
 
     float r = 0.0f;
     float increment = 0.05f;
@@ -269,10 +285,22 @@ int main(void)
         /* Clear Error First */
         //GLClearError();
 
+        GLCall(glUseProgram(shader));
+
         GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
 
+        GLCall(glBindVertexArray(vao)); // linking vertex buffer to vertex array object
+
+        //GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer));
+        GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo)); // index buffer object
+
+        ///* Need to do these 2 code every times if we draw another object with diff layout */
+        //GLCall(glEnableVertexAttribArray(0));
+        //GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
+
+
         /* Use with index buffers */
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr); // since we bound our ibo so just put nullptr
+        GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr)); // since we bound our ibo so just put nullptr
         //GLCall(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr)); // Debugging purpose
 
         /* Then Check Errors */
