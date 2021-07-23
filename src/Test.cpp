@@ -6,6 +6,28 @@
 #include <string>
 #include <sstream>
 
+/* Function called will be different for each compiler */
+#define ASSERT(x) if(!(x)) __debugbreak(); // compiler intrinsic means specific to MSBC functions instead of clang/gcc
+#define GLCall(x) GLClearError();\
+    x;\
+    ASSERT(GLLogCall(#x, __FILE__, __LINE__))
+
+static void GLClearError()
+{
+    while (glGetError() != GL_NO_ERROR); // since = 0 can write -> while (!glGetError());
+}
+
+//static void GLCheckError()
+static bool GLLogCall(const char* function, const char* file, int line)
+{
+    while (GLenum error = glGetError()) 
+    {
+        std::cout << "[OpenGL Error] (" << error << "): " << function << " " << file << ":" << line << std::endl;
+        return false;
+    }
+    return true;
+}
+
 /* Return 2 Variables */
 struct ShaderProgramSource
 {
@@ -235,11 +257,15 @@ int main(void)
         // 0.0f, 0.5f,   - 2
         // 0.5f, -0.5f   - 3
 
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr); // since we bound our ibo so just put nullptr
-        
+        /* Clear Error First */
+        GLClearError();
+
         /* Use with index buffers */
-        //glDrawElements();
-       
+        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr); // since we bound our ibo so just put nullptr
+        GLCall(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr)); // Debugging purpose
+
+        /* Then Check Errors */
+        //ASSERT(GLLogCall());
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
