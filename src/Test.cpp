@@ -33,9 +33,11 @@ int main(void)
     std::cout << glGetString(GL_VERSION) << std::endl;
 
     float positions[6] = {
+        // x, y
        -0.5f, -0.5f,
         0.0f, 0.5f,
         0.5f, -0.5f
+        // OpenGL doesn't know how many float per vertices so need to specific your layout using glVertexAttribPointer
     };
 
     unsigned int buffer;
@@ -43,6 +45,11 @@ int main(void)
     glBindBuffer(GL_ARRAY_BUFFER, buffer); // select which buffer you want to use
     glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW); // put data into that buffer
                                     // ^ in bytes (see docs.gl)
+
+    // Need to enable this vertex attribute if not will black screen - nothing will be render
+    glEnableVertexAttribArray(0); // type this after your actual buffer is bound - glBindBuffer
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+                                                        // ^ or 8
 
     //glBindBuffer(GL_ARRAY_BUFFER, 0); // if bind (select) something else then glDrawArrays cannot draw 
 
