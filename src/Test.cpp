@@ -313,7 +313,7 @@ int main(void)
         }
         else if (r < 0.0f)
         {
-            increment = 0.05;
+            increment = 0.05f;
         }
         r += increment;
 
@@ -325,7 +325,7 @@ int main(void)
     }
 
     /* Clean up the shaders once done */
-    glDeleteProgram(shader);
+    GLCall(glDeleteProgram(shader));
 
     glfwTerminate();
     return 0;
