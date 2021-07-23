@@ -2,6 +2,54 @@
 #include <glfw3.h>
 
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+
+struct ShaderProgramSource
+{
+    std::string VertexSource;
+    std::string FragmentSource;
+};
+
+static ShaderProgramSource ParseShader(const std::string& filepath)
+{
+    std::ifstream stream(filepath); 
+    
+    enum class ShaderType
+    {
+        NONE = -1, VERTEX = 0, FRAGMENT = 1
+    };
+
+    /* check the file line by line */
+    std::string line;
+    std::stringstream ss[2];
+    ShaderType type = ShaderType::NONE;
+
+    while (getline(stream, line))
+    {
+        if (line.find("#shader") != std::string::npos)
+        {
+            if (line.find("vertex") != std::string::npos)
+            {
+                // set mode to vertex
+                type = ShaderType::VERTEX;
+            }
+            else if (line.find("fragment") != std::string::npos)
+            {
+                // set mode to fragment
+                type = ShaderType::FRAGMENT;
+            }
+        }
+        else
+        {
+            ss[(int)type] << line << "\n";
+        }
+    }
+
+    return { ss[0].str(), ss[1].str() }; // return 2 variables - tuple/pair
+
+}
 
 static unsigned int CompileShader(unsigned int type, const std::string& source)
 {
@@ -98,29 +146,37 @@ int main(void)
 
     //glBindBuffer(GL_ARRAY_BUFFER, 0); // if bind (select) something else then glDrawArrays cannot draw 
 
-    std::string vertexShader = 
-        "#version 330 core\n"
-        "\n"
-        "layout(location = 0) in vec4 position;"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = position;\n"
-        "}\n";
+    //std::string vertexShader = 
+    //    "#version 330 core\n"
+    //    "\n"
+    //    "layout(location = 0) in vec4 position;"
+    //    "\n"
+    //    "void main()\n"
+    //    "{\n"
+    //    "   gl_Position = position;\n"
+    //    "}\n";
 
-    std::string fragmentShader =
-        "#version 330 core\n"
-        "\n"
-        "layout(location = 0) out vec4 color;"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "   color = vec4(1.0, 0.0, 0.0, 1.0);\n" // RGBA:  0 - black (0), 1 - white (255)
-        "}\n";
+    //std::string fragmentShader =
+    //    "#version 330 core\n"
+    //    "\n"
+    //    "layout(location = 0) out vec4 color;"
+    //    "\n"
+    //    "void main()\n"
+    //    "{\n"
+    //    "   color = vec4(1.0, 0.0, 0.0, 1.0);\n" // RGBA:  0 - black (0), 1 - white (255)
+    //    "}\n";
 
-    unsigned int shader = CreateShader(vertexShader, fragmentShader);
+    /* Relative Path - inside properties > Debugging > Working Directory > $(ProjectDir) so is the dir contains our project file */
+    ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
+    //std::cout << "VERTEX" << std::endl;
+    //std::cout << source.VertexSource << std::endl;
+    //std::cout << "FRAGMENT" << std::endl;
+    //std::cout << source.FragmentSource << std::endl;
+
+    //unsigned int shader = CreateShader(vertexShader, fragmentShader);
+    unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
     glUseProgram(shader); // installs the program object specified by program as part of current rendering state. 
-    // now the triangle is RED colour
+    //// now the triangle is RED colour (or the color u indicate in the fragment shader)
 
 
     /* Loop until the user closes the window */
