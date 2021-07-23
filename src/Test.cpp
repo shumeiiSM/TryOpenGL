@@ -137,6 +137,9 @@ int main(void)
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
+    /* Write this after having OpenGL context */
+    glfwSwapInterval(1); // make the screen updates slower, higher no. = slower
+
     /* First you need to create a valid OpenGL rendering context - glfwMakeContextCurrent(window) */
     /* before calling glewInit to initialize the extension entry points */
     if (glewInit() != GLEW_OK) {
@@ -235,6 +238,12 @@ int main(void)
     glUseProgram(shader); // installs the program object specified by program as part of current rendering state. 
     //// now the triangle is RED colour (or the color u indicate in the fragment shader)
 
+    GLCall(int location = glGetUniformLocation(shader, "u_Color"));
+    ASSERT(location != -1); // -1 means cannot find the location
+    //GLCall(glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f)); // PINK
+
+    float r = 0.0f;
+    float increment = 0.05f;
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -258,14 +267,27 @@ int main(void)
         // 0.5f, -0.5f   - 3
 
         /* Clear Error First */
-        GLClearError();
+        //GLClearError();
+
+        GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
 
         /* Use with index buffers */
-        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr); // since we bound our ibo so just put nullptr
-        GLCall(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr)); // Debugging purpose
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr); // since we bound our ibo so just put nullptr
+        //GLCall(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr)); // Debugging purpose
 
         /* Then Check Errors */
         //ASSERT(GLLogCall());
+
+        /* Bounce between 1 and 0 for RED in RGBA */
+        if (r > 1.0f) 
+        {
+            increment = -0.05f;
+        }
+        else if (r < 0.0f)
+        {
+            increment = 0.05;
+        }
+        r += increment;
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
