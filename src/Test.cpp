@@ -13,6 +13,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "Shaders.h"
+#include "Texture.h"
 
 
 /* ALL THESE WRITTEN IN SHADERS.CPP */
@@ -156,11 +157,11 @@ int main(void)
 
         /* Square */
         float positions[] = {
-            // x, y
-           -0.5f, -0.5f, // 0
-            0.5f, -0.5f, // 1
-            0.5f,  0.5f, // 2
-           -0.5f,  0.5f  // 3
+            // x, y  // texture coordinate for last 2 
+           -0.5f, -0.5f, 0.0f, 0.0f, // 0 - BOTTOM LEFT 
+            0.5f, -0.5f, 1.0f, 0.0f, // 1 - BOTTOM RIGHT 
+            0.5f,  0.5f, 1.0f, 1.0f, // 2 - TOP RIGHT 
+           -0.5f,  0.5f, 0.0f, 1.0f  // 3 - TOP LEFT
 
            /* remove duplicates */
            //-0.5f, -0.5f, 
@@ -177,6 +178,10 @@ int main(void)
             2, 3, 0
         };
 
+
+        GLCall(glEnable(GL_BLEND));
+        GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
         /* After adding Vertex Array cpp, generate & bind is done there so this few line of code dont need */
         /* Explicitly creating a vao & how to use it */
         /*
@@ -189,10 +194,11 @@ int main(void)
         VertexArray va;
 
         /* Vertex Buffer */
-        VertexBuffer vb(positions, 4 * 2 * sizeof(float));
-
+        VertexBuffer vb(positions, 4 * 4 * sizeof(float));
+                                    // ^ from  2 change to 4 since now got 4 floats per row
         /* Vertex Buffer Layout */
         VertexBufferLayout layout;
+        layout.Push<float>(2);
         layout.Push<float>(2);
         va.AddBuffer(vb, layout);
 
@@ -272,6 +278,10 @@ int main(void)
         // replaced sa2.2 - ASSERT(location != -1); // -1 means cannot find the location
         // replaced sa2.3 - //GLCall(glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f)); // PINK
 
+        /* Texture */
+        Texture texture("res/textures/ChernoLogo.png");
+        texture.Bind(); // default = 0 so no need pass anything
+        shader.SetUniform1i("u_Texture", 0); // since we bound that texture to GL_TEXTURE0 (slot zero) so must match that 0
 
         /* Unbound all the buffers */
         va.Unbind();  // replaced GLCall(glBindVertexArray(0));
