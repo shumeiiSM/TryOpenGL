@@ -10,99 +10,101 @@
 
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
-
 #include "VertexArray.h"
+#include "Shaders.h"
 
 
-/* Return 2 Variables */
-struct ShaderProgramSource
-{
-    std::string VertexSource;
-    std::string FragmentSource;
-};
+/* ALL THESE WRITTEN IN SHADERS.CPP */
 
-static ShaderProgramSource ParseShader(const std::string& filepath)
-{
-    std::ifstream stream(filepath); 
-    
-    enum class ShaderType
-    {
-        NONE = -1, VERTEX = 0, FRAGMENT = 1
-    };
-
-    /* check the file line by line */
-    std::string line;
-    std::stringstream ss[2];
-    ShaderType type = ShaderType::NONE;
-
-    while (getline(stream, line))
-    {
-        if (line.find("#shader") != std::string::npos)
-        {
-            if (line.find("vertex") != std::string::npos)
-            {
-                // set mode to vertex
-                type = ShaderType::VERTEX;
-            }
-            else if (line.find("fragment") != std::string::npos)
-            {
-                // set mode to fragment
-                type = ShaderType::FRAGMENT;
-            }
-        }
-        else
-        {
-            ss[(int)type] << line << "\n";
-        }
-    }
-
-    return { ss[0].str(), ss[1].str() }; // return 2 variables - tuple/pair
-
-}
-
-static unsigned int CompileShader(unsigned int type, const std::string& source)
-{
-    unsigned int id = glCreateShader(type);
-    const char* src = source.c_str(); // a pointer to beginning of the data - return pointer to immutable array so cannot be changed
-    // OR = &source[0]; - looking out first char in the string return a memory address
-    glShaderSource(id, 1, &src, nullptr);
-    glCompileShader(id);
-
-    // TODO: Error handling
-    int result;
-    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-    if (result == GL_FALSE) // (!result)
-    {
-        int length;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-        char* message = (char*)alloca(length * sizeof(char)); // a function allocate size bytes of space on the stack dynamically
-        glGetShaderInfoLog(id, length, &length, message);
-        std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!" << std::endl;
-        std::cout << message << std::endl;
-        glDeleteShader(id);
-        return 0;
-    }
-
-    return id;
-}
-
-static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
-{
-    unsigned int program = glCreateProgram();
-    unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
-    unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
-
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
-    glLinkProgram(program); // links the program object specified by program
-    glValidateProgram(program); // checks to see whether the executables contained in program can execute given the current OpenGL state.
-
-    // can delete those shader since linked to the program alr & its immediate
-    glDeleteShader(vs); 
-    glDeleteShader(fs);
-
-    return program;
-}
+///* Return 2 Variables */
+//struct ShaderProgramSource
+//{
+//    std::string VertexSource;
+//    std::string FragmentSource;
+//};
+//
+//static ShaderProgramSource ParseShader(const std::string& filepath)
+//{
+//    std::ifstream stream(filepath); 
+//    
+//    enum class ShaderType
+//    {
+//        NONE = -1, VERTEX = 0, FRAGMENT = 1
+//    };
+//
+//    /* check the file line by line */
+//    std::string line;
+//    std::stringstream ss[2];
+//    ShaderType type = ShaderType::NONE;
+//
+//    while (getline(stream, line))
+//    {
+//        if (line.find("#shader") != std::string::npos)
+//        {
+//            if (line.find("vertex") != std::string::npos)
+//            {
+//                // set mode to vertex
+//                type = ShaderType::VERTEX;
+//            }
+//            else if (line.find("fragment") != std::string::npos)
+//            {
+//                // set mode to fragment
+//                type = ShaderType::FRAGMENT;
+//            }
+//        }
+//        else
+//        {
+//            ss[(int)type] << line << "\n";
+//        }
+//    }
+//
+//    return { ss[0].str(), ss[1].str() }; // return 2 variables - tuple/pair
+//
+//}
+//
+//static unsigned int CompileShader(unsigned int type, const std::string& source)
+//{
+//    unsigned int id = glCreateShader(type);
+//    const char* src = source.c_str(); // a pointer to beginning of the data - return pointer to immutable array so cannot be changed
+//    // OR = &source[0]; - looking out first char in the string return a memory address
+//    glShaderSource(id, 1, &src, nullptr);
+//    glCompileShader(id);
+//
+//    // TODO: Error handling
+//    int result;
+//    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+//    if (result == GL_FALSE) // (!result)
+//    {
+//        int length;
+//        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+//        char* message = (char*)alloca(length * sizeof(char)); // a function allocate size bytes of space on the stack dynamically
+//        glGetShaderInfoLog(id, length, &length, message);
+//        std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!" << std::endl;
+//        std::cout << message << std::endl;
+//        glDeleteShader(id);
+//        return 0;
+//    }
+//
+//    return id;
+//}
+//
+//static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
+//{
+//    unsigned int program = glCreateProgram();
+//    unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
+//    unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
+//
+//    glAttachShader(program, vs);
+//    glAttachShader(program, fs);
+//    glLinkProgram(program); // links the program object specified by program
+//    glValidateProgram(program); // checks to see whether the executables contained in program can execute given the current OpenGL state.
+//
+//    // can delete those shader since linked to the program alr & its immediate
+//    glDeleteShader(vs); 
+//    glDeleteShader(fs);
+//
+//    return program;
+//}
 
 int main(void)
 {
@@ -245,29 +247,38 @@ int main(void)
         //    "   color = vec4(1.0, 0.0, 0.0, 1.0);\n" // RGBA:  0 - black (0), 1 - white (255)
         //    "}\n";
 
+        /* Shader Abstraction SA 1 */
+        Shader shader("res/shaders/Basic.shader");
+        shader.Bind();
+
         /* Relative Path - inside properties > Debugging > Working Directory > $(ProjectDir) so is the dir contains our project file */
-        ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
+        // replaced sa1.1 - ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
+        
         //std::cout << "VERTEX" << std::endl;
         //std::cout << source.VertexSource << std::endl;
         //std::cout << "FRAGMENT" << std::endl;
         //std::cout << source.FragmentSource << std::endl;
 
         //unsigned int shader = CreateShader(vertexShader, fragmentShader);
-        unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
-        GLCall(glUseProgram(shader)); // installs the program object specified by program as part of current rendering state. 
+        // replaced sa1.2 - unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
+        // replaced sa1.3 - GLCall(glUseProgram(shader)); // installs the program object specified by program as part of current rendering state. 
         //// now the triangle is RED colour (or the color u indicate in the fragment shader)
 
-        GLCall(int location = glGetUniformLocation(shader, "u_Color"));
-        ASSERT(location != -1); // -1 means cannot find the location
-        //GLCall(glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f)); // PINK
+        /* Shader Abstraction SA 2*/
+        shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
+
+        // replaced sa2.1 - GLCall(int location = glGetUniformLocation(shader, "u_Color"));
+        // replaced sa2.2 - ASSERT(location != -1); // -1 means cannot find the location
+        // replaced sa2.3 - //GLCall(glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f)); // PINK
+
 
         /* Unbound all the buffers */
         va.Unbind();  // replaced GLCall(glBindVertexArray(0));
-        GLCall(glUseProgram(0));
-        GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
-        GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        vb.Unbind(); // replaced GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+        ib.Unbind(); // replaced GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        shader.Unbind(); // replaced GLCall(glUseProgram(0));
 
-
+      
         float r = 0.0f;
         float increment = 0.05f;
 
@@ -295,9 +306,8 @@ int main(void)
             /* Clear Error First */
             //GLClearError();
 
-            GLCall(glUseProgram(shader));
-
-            GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
+            shader.Bind(); // replaced GLCall(glUseProgram(shader));
+            shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f); // replaced GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
 
             /* After adding Vertex Array cpp, bind is done there so this line of code dont need */
             //GLCall(glBindVertexArray(vao)); // linking vertex buffer to vertex array object
@@ -339,7 +349,8 @@ int main(void)
         }
 
         /* Clean up the shaders once done */
-        GLCall(glDeleteProgram(shader));
+        /* After adding Shaders.cpp don't need to manually once reach end of the scope will be deleted by the destructor */
+        //GLCall(glDeleteProgram(shader));
 
     } // end of scope
 
