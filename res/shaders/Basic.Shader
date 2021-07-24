@@ -6,9 +6,11 @@ layout(location = 1) in vec2 texCoord;
 
 out vec2 v_TexCoord;
 
+uniform mat4 u_MVP; // Model View Projection matrix
+
 void main()
 {
-   gl_Position = position;
+   gl_Position = u_MVP * position; // will move it to appropriate space based on ortho matrix we provided
    v_TexCoord = texCoord;
 };
 

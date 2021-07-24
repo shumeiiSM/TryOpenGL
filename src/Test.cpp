@@ -15,6 +15,8 @@
 #include "Shaders.h"
 #include "Texture.h"
 
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 /* ALL THESE WRITTEN IN SHADERS.CPP */
 
@@ -224,6 +226,9 @@ int main(void)
         /* Index Buffer */
         IndexBuffer ib(indices, 6); // stack allocated object
 
+        /* Maths GLM */
+        glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f); // 4x4 matrix
+                                  //left, right, bottom, top edges, near, far planes
         /*
         unsigned int ibo; // index buffer object
         GLCall(glGenBuffers(1, &ibo));
@@ -273,6 +278,9 @@ int main(void)
 
         /* Shader Abstraction SA 2*/
         shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
+
+        /* Matrix */
+        shader.SetUniformMat4f("u_MVP", proj);
 
         // replaced sa2.1 - GLCall(int location = glGetUniformLocation(shader, "u_Color"));
         // replaced sa2.2 - ASSERT(location != -1); // -1 means cannot find the location
