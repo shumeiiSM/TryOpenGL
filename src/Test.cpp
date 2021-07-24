@@ -237,8 +237,23 @@ int main(void)
 
         glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f); // per pixels based
         
-        glm::vec4 vp(100.0f, 100.0f, 0.0f, 1.0f);
-        glm::vec4 result = proj * vp;
+        /* Create View Matrix */
+        //glm::mat4 view(1.0f);
+
+        /* Translation Matrix */
+        //glm::translate(view, glm::vec3(-100, 0, 0));
+
+        /* Combined Together */
+        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0)); // moved camera to the right then everything else (objects) moved to the left
+
+        /* Create Model Matrix */
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200, 200, 0)); // moved object up & right by 200 units
+
+        /* Create MVP Matrix */
+        glm::mat4 mvp = proj * view * model;
+
+        //glm::vec4 vp(100.0f, 100.0f, 0.0f, 1.0f);
+        //glm::vec4 result = proj * vp;
 
         /*
         unsigned int ibo; // index buffer object
@@ -291,7 +306,8 @@ int main(void)
         shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
 
         /* Matrix */
-        shader.SetUniformMat4f("u_MVP", proj);
+        //shader.SetUniformMat4f("u_MVP", proj);
+        shader.SetUniformMat4f("u_MVP", mvp);
 
         // replaced sa2.1 - GLCall(int location = glGetUniformLocation(shader, "u_Color"));
         // replaced sa2.2 - ASSERT(location != -1); // -1 means cannot find the location
