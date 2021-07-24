@@ -9,6 +9,7 @@
 #include "Renderer.h"
 
 #include "VertexBuffer.h"
+#include "VertexBufferLayout.h"
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "Shaders.h"
@@ -278,7 +279,9 @@ int main(void)
         ib.Unbind(); // replaced GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
         shader.Unbind(); // replaced GLCall(glUseProgram(0));
 
-      
+        /* Renderer */
+        Renderer renderer;
+
         float r = 0.0f;
         float increment = 0.05f;
 
@@ -286,7 +289,8 @@ int main(void)
         while (!glfwWindowShouldClose(window))
         {
             /* Render here */
-            glClear(GL_COLOR_BUFFER_BIT);
+            renderer.Clear();
+            //glClear(GL_COLOR_BUFFER_BIT); // handle by the renderer
 
             ///* Drawing a triangle */
             //glBegin(GL_TRIANGLES);
@@ -314,17 +318,20 @@ int main(void)
 
             //GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer));
 
-            va.Bind();
-            ib.Bind(); // replaced glBindBuffer
+            /* Done in Renderer.cpp so dont need to bind here again */
+            //va.Bind();
+            //ib.Bind(); // replaced glBindBuffer
             //GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo)); // index buffer object
 
             ///* Need to do these 2 code every times if we draw another object with diff layout */
             //GLCall(glEnableVertexAttribArray(0));
             //GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
 
+            /* Renderer replaced glDrawElements */
+            renderer.Draw(va, ib, shader); // telling renderer to draw these on screen by providing Vertex Array, Index Buffer and Shader
 
             /* Use with index buffers */
-            GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr)); // since we bound our ibo so just put nullptr
+            //GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr)); // since we bound our ibo so just put nullptr
             //GLCall(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr)); // Debugging purpose
 
             /* Then Check Errors */
