@@ -31,4 +31,5 @@ void main()
 	vec4 texColor = texture(u_Texture, v_TexCoord);
 	//color = u_Color;
 	color = texColor; // actual texture look up color
+	//color = vec4(1.0); // white
 };

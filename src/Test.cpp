@@ -114,7 +114,7 @@ int main(void)
 {
     GLFWwindow* window;
 
-    /* Initialize the library */
+    /* Initialize the library */ 
     if (!glfwInit())
         return -1;
 
@@ -123,7 +123,7 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(960, 540, "Hello World", NULL, NULL); // 640, 480
     if (!window)
     {
         glfwTerminate();
@@ -160,10 +160,15 @@ int main(void)
         /* Square */
         float positions[] = {
             // x, y  // texture coordinate for last 2 
-           -0.5f, -0.5f, 0.0f, 0.0f, // 0 - BOTTOM LEFT 
-            0.5f, -0.5f, 1.0f, 0.0f, // 1 - BOTTOM RIGHT 
-            0.5f,  0.5f, 1.0f, 1.0f, // 2 - TOP RIGHT 
-           -0.5f,  0.5f, 0.0f, 1.0f  // 3 - TOP LEFT
+        //   -0.5f, -0.5f, 0.0f, 0.0f, // 0 - BOTTOM LEFT 
+        //    0.5f, -0.5f, 1.0f, 0.0f, // 1 - BOTTOM RIGHT 
+        //    0.5f,  0.5f, 1.0f, 1.0f, // 2 - TOP RIGHT 
+        //   -0.5f,  0.5f, 0.0f, 1.0f  // 3 - TOP LEFT
+
+           100.0f, 100.0f, 0.0f, 0.0f, 
+           200.0f, 100.0f, 1.0f, 0.0f,
+           200.0f, 200.0f, 1.0f, 1.0f, 
+           100.0f, 200.0f, 0.0f, 1.0f
 
            /* remove duplicates */
            //-0.5f, -0.5f, 
@@ -226,9 +231,15 @@ int main(void)
         /* Index Buffer */
         IndexBuffer ib(indices, 6); // stack allocated object
 
-        /* Maths GLM */
-        glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f); // 4x4 matrix
+        /* Maths GLM */            //    X             Y            Z         this is the screen that we see anything more than this will not be render
+        //glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f); // 4x4 matrix, 
                                   //left, right, bottom, top edges, near, far planes
+
+        glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f); // per pixels based
+        
+        glm::vec4 vp(100.0f, 100.0f, 0.0f, 1.0f);
+        glm::vec4 result = proj * vp;
+
         /*
         unsigned int ibo; // index buffer object
         GLCall(glGenBuffers(1, &ibo));
