@@ -7,8 +7,12 @@
 #include <sstream>
 
 #include "Renderer.h"
+
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+
+#include "VertexArray.h"
+
 
 /* Return 2 Variables */
 struct ShaderProgramSource
@@ -170,15 +174,27 @@ int main(void)
             2, 3, 0
         };
 
+        /* After adding Vertex Array cpp, generate & bind is done there so this few line of code dont need */
         /* Explicitly creating a vao & how to use it */
+        /*
         unsigned int vao;
         GLCall(glGenVertexArrays(1, &vao)); // stored in ID vao
         GLCall(glBindVertexArray(vao)); // no actual target so just specify the ID we want to bind 
+        */
+
+        /* Vertex Array */
+        VertexArray va;
 
         /* Vertex Buffer */
         VertexBuffer vb(positions, 4 * 2 * sizeof(float));
 
-        /*
+        /* Vertex Buffer Layout */
+        VertexBufferLayout layout;
+        layout.Push<float>(2);
+        va.AddBuffer(vb, layout);
+
+
+        /* Vertex Buffer Replaced
         unsigned int buffer;
         GLCall(glGenBuffers(1, &buffer)); // generate a buffer and giving back an ID
         GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer)); // select which buffer you want to use
@@ -188,10 +204,13 @@ int main(void)
         GLCall(glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW)); // SQUARE
         */
 
+        /* Vertex Buffer Layout Replaced
         // Need to enable this vertex attribute if not will black screen - nothing will be render
         GLCall(glEnableVertexAttribArray(0)); // type this after your actual buffer is bound - glBindBuffer
         GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
-        // ^ or 8
+                                                                    // ^ or 8
+        */
+
 
         /* Index Buffer */
         IndexBuffer ib(indices, 6); // stack allocated object
@@ -243,7 +262,7 @@ int main(void)
         //GLCall(glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f)); // PINK
 
         /* Unbound all the buffers */
-        GLCall(glBindVertexArray(0));
+        va.Unbind();  // replaced GLCall(glBindVertexArray(0));
         GLCall(glUseProgram(0));
         GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
         GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
@@ -280,10 +299,12 @@ int main(void)
 
             GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
 
-            GLCall(glBindVertexArray(vao)); // linking vertex buffer to vertex array object
+            /* After adding Vertex Array cpp, bind is done there so this line of code dont need */
+            //GLCall(glBindVertexArray(vao)); // linking vertex buffer to vertex array object
 
             //GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer));
 
+            va.Bind();
             ib.Bind(); // replaced glBindBuffer
             //GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo)); // index buffer object
 
