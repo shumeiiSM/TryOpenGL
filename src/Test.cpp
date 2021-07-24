@@ -178,9 +178,9 @@ int main(void)
             2, 3, 0
         };
 
-
-        GLCall(glEnable(GL_BLEND));
-        GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+        /* Blending */
+        GLCall(glEnable(GL_BLEND)); // must enable to use it - there's no default 
+        GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)); // 1 - source alpha
 
         /* After adding Vertex Array cpp, generate & bind is done there so this few line of code dont need */
         /* Explicitly creating a vao & how to use it */
