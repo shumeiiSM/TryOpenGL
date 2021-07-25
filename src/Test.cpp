@@ -18,6 +18,10 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_opengl3.h"
+#include "imgui/imgui_impl_glfw.h"
+
 /* ALL THESE WRITTEN IN SHADERS.CPP */
 
 ///* Return 2 Variables */
@@ -247,10 +251,12 @@ int main(void)
         glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0)); // moved camera to the right then everything else (objects) moved to the left
 
         /* Create Model Matrix */
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200, 200, 0)); // moved object up & right by 200 units
+        // moved inside while(!..window) 
+        //glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200, 200, 0)); // moved object up & right by 200 units
 
         /* Create MVP Matrix */
-        glm::mat4 mvp = proj * view * model;
+        // moved inside while(!..window) 
+        //glm::mat4 mvp = proj * view * model;
 
         //glm::vec4 vp(100.0f, 100.0f, 0.0f, 1.0f);
         //glm::vec4 result = proj * vp;
@@ -307,7 +313,8 @@ int main(void)
 
         /* Matrix */
         //shader.SetUniformMat4f("u_MVP", proj);
-        shader.SetUniformMat4f("u_MVP", mvp);
+        // moved inside while(!..window) 
+        //shader.SetUniformMat4f("u_MVP", mvp);
 
         // replaced sa2.1 - GLCall(int location = glGetUniformLocation(shader, "u_Color"));
         // replaced sa2.2 - ASSERT(location != -1); // -1 means cannot find the location
@@ -327,8 +334,22 @@ int main(void)
         /* Renderer */
         Renderer renderer;
 
+        /* ImGui Initialization */
+        ImGui::CreateContext();
+        ImGui_ImplGlfw_InitForOpenGL(window, true); // initialize the window
+        ImGui::StyleColorsDark(); // setup the style
+        ImGui_ImplOpenGL3_Init((char*)glGetString(GL_NUM_SHADING_LANGUAGE_VERSIONS)); // setup the version
+
+        /* Create vec3 variable */
+        glm::vec3 translation(200, 200, 0);
+
         float r = 0.0f;
         float increment = 0.05f;
+
+        /* ImGui Variable */
+        bool show_demo_window = true;
+        bool show_another_window = false;
+        ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
@@ -336,6 +357,15 @@ int main(void)
             /* Render here */
             renderer.Clear();
             //glClear(GL_COLOR_BUFFER_BIT); // handle by the renderer
+
+            /* ImGui Frame */
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
+            glm::mat4 mvp = proj * view * model;
+
 
             ///* Drawing a triangle */
             //glBegin(GL_TRIANGLES);
@@ -357,6 +387,7 @@ int main(void)
 
             shader.Bind(); // replaced GLCall(glUseProgram(shader));
             shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f); // replaced GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
+            shader.SetUniformMat4f("u_MVP", mvp);
 
             /* After adding Vertex Array cpp, bind is done there so this line of code dont need */
             //GLCall(glBindVertexArray(vao)); // linking vertex buffer to vertex array object
@@ -393,6 +424,28 @@ int main(void)
             }
             r += increment;
 
+            /* ImGui Window */
+            {
+                static float f = 0.0f;
+                static int counter = 0;
+
+                ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+                ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+                ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+                ImGui::Checkbox("Another Window", &show_another_window);
+
+                ImGui::SliderFloat("Translation", &translation.x, 0.0f, 960.0f);   // bouncer set as proj matrix is set to 960        // Edit 1 float using a slider from 0.0f to 1.0f
+                ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+                ImGui::End();
+            }
+
+            /* ImGui Render */
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
             /* Swap front and back buffers */
             glfwSwapBuffers(window);
 
@@ -405,6 +458,11 @@ int main(void)
         //GLCall(glDeleteProgram(shader));
 
     } // end of scope
+
+    /* ImGui Shutdown or Cleanup */
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     glfwTerminate();
     return 0;
