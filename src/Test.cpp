@@ -22,6 +22,8 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include "imgui/imgui_impl_glfw.h"
 
+#include "tests/TestClearColor.h"
+
 /* ALL THESE WRITTEN IN SHADERS.CPP */
 
 ///* Return 2 Variables */
@@ -359,12 +361,19 @@ int main(void)
         bool show_another_window = false;
         ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
+        /* Test Variables */
+        test::TestClearColor test;
+
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
         {
             /* Render here */
             renderer.Clear();
             //glClear(GL_COLOR_BUFFER_BIT); // handle by the renderer
+
+            /* Test Render */
+            test.OnUpdate(0.0f);
+            test.OnRender();
 
             /* ImGui Frame */
             ImGui_ImplOpenGL3_NewFrame();
@@ -467,6 +476,9 @@ int main(void)
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
                 ImGui::End();
             }
+
+            /* Test Render */
+            test.OnImGuiRender();
 
             /* ImGui Render */
             ImGui::Render();
