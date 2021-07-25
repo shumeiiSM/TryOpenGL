@@ -169,10 +169,16 @@ int main(void)
         //    0.5f,  0.5f, 1.0f, 1.0f, // 2 - TOP RIGHT 
         //   -0.5f,  0.5f, 0.0f, 1.0f  // 3 - TOP LEFT
 
-           100.0f, 100.0f, 0.0f, 0.0f, 
-           200.0f, 100.0f, 1.0f, 0.0f,
-           200.0f, 200.0f, 1.0f, 1.0f, 
-           100.0f, 200.0f, 0.0f, 1.0f
+           //100.0f, 100.0f, 0.0f, 0.0f, 
+           //200.0f, 100.0f, 1.0f, 0.0f,
+           //200.0f, 200.0f, 1.0f, 1.0f, 
+           //100.0f, 200.0f, 0.0f, 1.0f
+
+           /* Change to become centered around zero */
+          -50.0f, -50.0f, 0.0f, 0.0f,   // the object will go -50 outside both x and y
+           50.0f, -50.0f, 1.0f, 0.0f,
+           50.0f,  50.0f, 1.0f, 1.0f,
+          -50.0f,  50.0f, 0.0f, 1.0f
 
            /* remove duplicates */
            //-0.5f, -0.5f, 
@@ -248,7 +254,8 @@ int main(void)
         //glm::translate(view, glm::vec3(-100, 0, 0));
 
         /* Combined Together */
-        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0)); // moved camera to the right then everything else (objects) moved to the left
+        //glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0)); // moved camera to the right then everything else (objects) moved to the left
+        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)); // identity matrix no translation so default position
 
         /* Create Model Matrix */
         // moved inside while(!..window) 
@@ -309,7 +316,7 @@ int main(void)
         //// now the triangle is RED colour (or the color u indicate in the fragment shader)
 
         /* Shader Abstraction SA 2*/
-        shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
+        //shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
 
         /* Matrix */
         //shader.SetUniformMat4f("u_MVP", proj);
@@ -341,7 +348,8 @@ int main(void)
         ImGui_ImplOpenGL3_Init((char*)glGetString(GL_NUM_SHADING_LANGUAGE_VERSIONS)); // setup the version
 
         /* Create vec3 variable */
-        glm::vec3 translation(200, 200, 0);
+        glm::vec3 translationA(200, 200, 0);
+        glm::vec3 translationB(400, 200, 0);
 
         float r = 0.0f;
         float increment = 0.05f;
@@ -363,9 +371,6 @@ int main(void)
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
-            glm::mat4 mvp = proj * view * model;
-
 
             ///* Drawing a triangle */
             //glBegin(GL_TRIANGLES);
@@ -386,8 +391,25 @@ int main(void)
             //GLClearError();
 
             shader.Bind(); // replaced GLCall(glUseProgram(shader));
-            shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f); // replaced GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
-            shader.SetUniformMat4f("u_MVP", mvp);
+            //shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f); // replaced GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
+            
+            /* Rendering Multiple Objects */
+            {
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);
+                glm::mat4 mvp = proj * view * model;
+                shader.SetUniformMat4f("u_MVP", mvp);
+
+                renderer.Draw(va, ib, shader);
+            }
+
+            {
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB);
+                glm::mat4 mvp = proj * view * model;
+                shader.SetUniformMat4f("u_MVP", mvp);
+
+                renderer.Draw(va, ib, shader);
+            }
+           
 
             /* After adding Vertex Array cpp, bind is done there so this line of code dont need */
             //GLCall(glBindVertexArray(vao)); // linking vertex buffer to vertex array object
@@ -403,8 +425,11 @@ int main(void)
             //GLCall(glEnableVertexAttribArray(0));
             //GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
 
+           
             /* Renderer replaced glDrawElements */
-            renderer.Draw(va, ib, shader); // telling renderer to draw these on screen by providing Vertex Array, Index Buffer and Shader
+            //renderer.Draw(va, ib, shader); // telling renderer to draw these on screen by providing Vertex Array, Index Buffer and Shader
+
+
 
             /* Use with index buffers */
             //GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr)); // since we bound our ibo so just put nullptr
@@ -435,9 +460,10 @@ int main(void)
                 ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
                 ImGui::Checkbox("Another Window", &show_another_window);
 
-                ImGui::SliderFloat("Translation", &translation.x, 0.0f, 960.0f);   // bouncer set as proj matrix is set to 960        // Edit 1 float using a slider from 0.0f to 1.0f
-                ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+                ImGui::SliderFloat("Translation A", &translationA.x, 0.0f, 960.0f);   // bouncer set as proj matrix is set to 960        // Edit 1 float using a slider from 0.0f to 1.0f
+                ImGui::SliderFloat("Translation B", &translationB.x, 0.0f, 960.0f);
 
+                ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
                 ImGui::End();
             }
